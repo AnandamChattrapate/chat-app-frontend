@@ -14,23 +14,41 @@ function ChatPage(){
     const navigate = useNavigate(); 
 
   // Check token before anything else
-  useEffect(() => {
-    const checkAuth = () => {
-      const hasToken = localStorage.getItem('token') || 
-                      document.cookie.includes('token=');
-      
-      if (!hasToken) {
-        console.log('❌ No token found, redirecting to login');
-        navigate('/login');
-        return false;
-      }
-      
-      console.log('✅ Token found, proceeding to chat');
-      return true;
-    };
+// Check token before anything else - WITH DELAY
+useEffect(() => {
+  const checkAuth = () => {
+    // Check for token in cookies
+    const hasToken = document.cookie.includes('token=');
+    
+    if (!hasToken) {
+        
+      console.log('⚠️ No token cookie found immediately, waiting...');
+      // Don't redirect immediately - wait for cookie
+      return false;
+    }
+    
+    console.log('✅ Token cookie found, proceeding to chat');
+    return true;
+  };
 
-    checkAuth();
-  }, [navigate]);
+  // Check immediately
+  const hasToken = checkAuth();
+  
+  if (!hasToken) {
+    // Wait a bit for cookie to be set
+    const timer = setTimeout(() => {
+      console.log('🔄 Re-checking cookies after delay...');
+      if (!document.cookie.includes('token=')) {
+        console.log('❌ Still no token after delay, redirecting to login');
+        navigate('/login');
+      } else {
+        console.log('✅ Token found after delay!');
+      }
+    }, 1500); // Wait 1.5 seconds
+    
+    return () => clearTimeout(timer);
+  }
+}, [navigate]);
 
 
 
@@ -52,24 +70,58 @@ function ChatPage(){
 
     // },[]);
     // fetch all users - with better error handling
-  useEffect(() => {
-    console.log("📡 Fetching chats...");
+  // useEffect(() => {
+  //   console.log("📡 Fetching chats...");
 
-    const fetchUsers = async () => {
-      try {
-        const res = await API.get('/chat');
-        console.log("✅ Chats received:", res.data.payload);
-        setUsers(res.data.payload || []);
-      } catch (err) {
-        console.log("❌ Error fetching chats:", err.response?.status, err.message);
-        if (err.response?.status === 401) {
-          navigate('/login');
-        }
-      }
-    };
+  //   const fetchUsers = async () => {
+  //     try {
+  //       const res = await API.get('/chat');
+  //       console.log("✅ Chats received:", res.data.payload);
+  //       setUsers(res.data.payload || []);
+  //     } catch (err) {
+  //       console.log("❌ Error fetching chats:", err.response?.status, err.message);
+  //       if (err.response?.status === 401) {
+  //         navigate('/login');
+  //       }
+  //     }
+  //   };
     
+  //   fetchUsers();
+  // }, [navigate]);
+useEffect(() => {
+  console.log("📡 Fetching chats...");
+
+  const fetchUsers = async () => {
+    try {
+      const res = await API.get('/chat');
+      console.log("✅ Chats received:", res.data);
+      
+      // Check if payload exists
+      if (res.data && res.data.payload) {
+        setUsers(res.data.payload || []);
+      } else {
+        console.log("No chats found, setting empty array");
+        setUsers([]);
+      }
+    } catch (err) {
+      console.log("❌ Error fetching chats:", err.response?.status, err.message);
+      if (err.response?.status === 401) {
+        // Only redirect if it's a real 401 after cookie should be there
+        setTimeout(() => {
+          navigate('/login');
+        }, 500);
+      }
+    }
+  };
+  
+  // Only fetch if we have token
+  if (document.cookie.includes('token=')) {
     fetchUsers();
-  }, [navigate]);
+  } else {
+    console.log("⏳ Waiting for token before fetching chats...");
+  }
+}, [navigate]);
+    
     useEffect(() => {
   if (!selectedUser) return;
 
