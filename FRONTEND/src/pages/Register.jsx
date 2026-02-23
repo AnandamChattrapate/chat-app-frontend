@@ -2,8 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api.js";
 
-const navigate = useNavigate();
-
 function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -11,7 +9,7 @@ function Register() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // ✅ Only one instance, correctly placed
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -26,7 +24,7 @@ function Register() {
       });
 
       console.log("Register success");
-      navigate("/login"); // after register go to login
+      navigate("/login");
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
       console.log("Register Failed: " + err.message);
