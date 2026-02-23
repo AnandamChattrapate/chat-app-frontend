@@ -10,84 +10,6 @@ function ChatPage(){
     const inputRef = useRef();
     const [name,setName]=useState("");
     const [searchRes,setSearchRes]=useState([])
-
-    const navigate = useNavigate(); 
-
-  // Check token before anything else
-// Check token before anything else - WITH DELAY
-useEffect(() => {
-  const checkAuth = () => {
-    // Check for token in cookies
-    const hasToken = document.cookie.includes('token=');
-    
-    if (!hasToken) {
-        
-      console.log('⚠️ No token cookie found immediately, waiting...');
-      // Don't redirect immediately - wait for cookie
-      return false;
-    }
-    
-    console.log('✅ Token cookie found, proceeding to chat');
-    return true;
-  };
-
-  // Check immediately
-  const hasToken = checkAuth();
-  
-  if (!hasToken) {
-    // Wait a bit for cookie to be set
-    const timer = setTimeout(() => {
-      console.log('🔄 Re-checking cookies after delay...');
-      if (!document.cookie.includes('token=')) {
-        console.log('❌ Still no token after delay, redirecting to login');
-        navigate('/login');
-      } else {
-        console.log('✅ Token found after delay!');
-      }
-    }, 1500); // Wait 1.5 seconds
-    
-    return () => clearTimeout(timer);
-  }
-}, [navigate]);
-
-
-
-    // // fetch all users
-    // useEffect(()=>{
-    //     console.log("Use Effect");
-
-    //     const fetchUsers= async ()=>{
-    //         try{
-    //             const res=await API.get('/chat');
-    //             console.log("all chats we recieved : ",res.data.payload)
-    //             setUsers(res.data.payload);
-    //         }catch(err){
-    //             console.log("error in fetching data "+err.message)
-
-    //         }
-    //     }
-    //         fetchUsers();
-
-    // },[]);
-    // fetch all users - with better error handling
-  // useEffect(() => {
-  //   console.log("📡 Fetching chats...");
-
-  //   const fetchUsers = async () => {
-  //     try {
-  //       const res = await API.get('/chat');
-  //       console.log("✅ Chats received:", res.data.payload);
-  //       setUsers(res.data.payload || []);
-  //     } catch (err) {
-  //       console.log("❌ Error fetching chats:", err.response?.status, err.message);
-  //       if (err.response?.status === 401) {
-  //         navigate('/login');
-  //       }
-  //     }
-  //   };
-    
-  //   fetchUsers();
-  // }, [navigate]);
 useEffect(() => {
   console.log("📡 Fetching chats...");
 
@@ -96,7 +18,6 @@ useEffect(() => {
       const res = await API.get('/chat');
       console.log("✅ Chats received:", res.data);
       
-      // Check if payload exists
       if (res.data && res.data.payload) {
         setUsers(res.data.payload || []);
       } else {
@@ -106,7 +27,6 @@ useEffect(() => {
     } catch (err) {
       console.log("❌ Error fetching chats:", err.response?.status, err.message);
       if (err.response?.status === 401) {
-        // Only redirect if it's a real 401 after cookie should be there
         setTimeout(() => {
           navigate('/login');
         }, 500);
@@ -114,15 +34,12 @@ useEffect(() => {
     }
   };
   
-  // Only fetch if we have token
-  if (document.cookie.includes('token=')) {
-    fetchUsers();
-  } else {
-    console.log("⏳ Waiting for token before fetching chats...");
-  }
-}, [navigate]);
-    
-    useEffect(() => {
+  fetchUsers();  // Call the fetch function
+  
+}, [navigate]);  // First useEffect ends here
+
+// SECOND useEffect - Message polling (separate, not nested)
+useEffect(() => {
   if (!selectedUser) return;
 
   const fetchMessages = async () => {
@@ -144,74 +61,6 @@ useEffect(() => {
   return () => clearInterval(interval);
 
 }, [selectedUser]);
-    // const handleSelectedUser=async (user)=>{
-    //     setSelectedUser(user);
-    //     try{
-    //         // const chatRes=await API.post('/chat',{
-    //         //     userId:user._id,
-    //         // })
-    //         const otherUserId=user._id;
-    //         console.log("user id : ",otherUserId)
-    //         const msgRes=await API.get(`/message/${otherUserId}`)
-    //         //console.log("message responce set to messages ",msgRes.data)
-    //         setMessages(msgRes.data?.payload || []);
-    //         console.log("messages : ",messages)
-    //         setSearchRes("")
-    //     } catch (err) {
-    //         console.log(err.message);
-    //     }
-    // }
-    const handleSelectedUser = (user) => {
-  setSelectedUser(user);
-  setSearchRes("");
-};
-const handleSend = () => {
-console.log(inputRef.current.value);
-inputRef.current.value = ""; // clear input
-};
-    const handleSearch=async(name)=>{
-      if(!name){
-        return;
-      }
-      try{
-        const res=await API.get('/user/search',{
-          params:{
-            userName:name
-          }
-        })
-        console.log(res.data?.payload);
-        setName("")
-        
-        let searchResult=res.data?.payload || []
-        setSearchRes(searchResult)
-        // new chat / existing 
-    
-
-
-      }catch(err){
-          console.error("Error:",err.message);
-
-      }
-
-    }
-    const handleSendMessage=async()=>{
-        if(!newMessage){
-            return; 
-        }
-        try{
-            const res=await API.post('/message',{
-                oId: selectedUser._id,
-                text: newMessage
-            })
-            console.log(res.data)
-            setMessages([...messages,res.data.payload])
-            setNewMessage("")
-            
-            
-        }catch(err){
-            console.log(err.message)
-        }
-    }
 
    return (
     <div style={{display:"flex",height:"100vh"}}>
