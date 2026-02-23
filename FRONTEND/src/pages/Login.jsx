@@ -1,4 +1,4 @@
-import { useState,useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api.js";
 
@@ -8,52 +8,37 @@ function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // CHECK IF THIS EXISTS
+  console.log("🔥 useNavigate hook:", useNavigate);
   const navigate = useNavigate();
+  console.log("🔥 navigate function:", navigate);
 
-  // const handleLogin = async (e) => {
-  //   e.preventDefault();
-  //   setError("");
-  //   setLoading(true);
-
-  //   try {
-  //     const res = await API.post("auth/login", {
-  //       email,
-  //       password,
-  //     });
-
-  //     console.log("Login success");
-  //     navigate("/chat");
-  //   } catch (err) {
-  //     setError("Invalid email or password");
-  //     console.log("Login Failed: " + err.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-    const handleLogin = async (e) => {
-  e.preventDefault();
-  setError("");
-  setLoading(true);
-
-  try {
-    const res = await API.post("auth/login", {
-      email,
-      password,
-    });
-
-    console.log("✅ Login success - Full response:", res.data);
-    console.log("🍪 Cookies after login:", document.cookie);
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    console.log("🔥 handleLogin called");
+    console.log("🔥 navigate inside handler:", navigate); 
     
-    // ✅ NO localStorage needed! Just navigate to chat
-    navigate("/chat");
-    
-  } catch (err) {
-    console.log("❌ Login Failed:", err.response?.data || err.message);
-    setError(err.response?.data?.message || "Invalid email or password");
-  } finally {
-    setLoading(false);
-  }
-};
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await API.post("auth/login", {
+        email,
+        password,
+      });
+
+      console.log("✅ Login success");
+      console.log("🔥 About to navigate...");
+      navigate("/chat"); // THIS IS LINE 65 in your original code
+      console.log("🔥 After navigate");
+      
+    } catch (err) {
+      console.log("❌ Login Failed:", err);
+      setError("Invalid email or password");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div>
