@@ -1,7 +1,9 @@
 import { useState,useEffect ,useRef} from "react";
 import API from '../services/api.js'
 import './ChatPage.css';
-import { useNavigate } from "react-router-dom"; 
+
+import { useNavigate } from "react-router-dom";
+const navigate = useNavigate();
 function ChatPage(){
     const [users,setUsers]=useState([]);
     const [selectedUser,setSelectedUser]=useState(null);
