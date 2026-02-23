@@ -1,7 +1,7 @@
 import { useState,useEffect ,useRef} from "react";
 import API from '../services/api.js'
 import './ChatPage.css';
-
+import { useNavigate } from "react-router-dom"; 
 function ChatPage(){
     const [users,setUsers]=useState([]);
     const [selectedUser,setSelectedUser]=useState(null);
@@ -11,7 +11,7 @@ function ChatPage(){
     const [name,setName]=useState("");
     const [searchRes,setSearchRes]=useState([])
 
-    const navigate = useNavigate(); // Don't forget to import useNavigate
+    const navigate = useNavigate(); 
 
   // Check token before anything else
   useEffect(() => {
