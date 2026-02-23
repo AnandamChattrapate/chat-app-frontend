@@ -10,26 +10,50 @@ function Login() {
 
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  // const handleLogin = async (e) => {
+  //   e.preventDefault();
+  //   setError("");
+  //   setLoading(true);
 
-    try {
-      const res = await API.post("auth/login", {
-        email,
-        password,
-      });
+  //   try {
+  //     const res = await API.post("auth/login", {
+  //       email,
+  //       password,
+  //     });
 
-      console.log("Login success");
-      navigate("/chat");
-    } catch (err) {
-      setError("Invalid email or password");
-      console.log("Login Failed: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     console.log("Login success");
+  //     navigate("/chat");
+  //   } catch (err) {
+  //     setError("Invalid email or password");
+  //     console.log("Login Failed: " + err.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+    const handleLogin = async (e) => {
+  e.preventDefault();
+  setError("");
+  setLoading(true);
+
+  try {
+    const res = await API.post("auth/login", {
+      email,
+      password,
+    });
+
+    console.log("✅ Login success - Full response:", res.data);
+    console.log("🍪 Cookies after login:", document.cookie);
+    
+    // ✅ NO localStorage needed! Just navigate to chat
+    navigate("/chat");
+    
+  } catch (err) {
+    console.log("❌ Login Failed:", err.response?.data || err.message);
+    setError(err.response?.data?.message || "Invalid email or password");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div>
