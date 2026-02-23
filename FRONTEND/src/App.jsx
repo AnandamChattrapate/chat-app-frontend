@@ -37,7 +37,7 @@ function App() {
         {/* Your actual routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/chat" element={<ChatPage />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/signup" element={<Register />} />
         
         {/* Catch all other routes - redirect to login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
