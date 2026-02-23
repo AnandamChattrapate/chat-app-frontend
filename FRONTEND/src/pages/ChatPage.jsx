@@ -1,68 +1,99 @@
-import { useState,useEffect ,useRef} from "react";
+import { useState, useEffect, useRef } from "react";
 import API from '../services/api.js'
 import './ChatPage.css';
-
 import { useNavigate } from "react-router-dom";
-const navigate = useNavigate();
-function ChatPage(){
-    const [users,setUsers]=useState([]);
-    const [selectedUser,setSelectedUser]=useState(null);
-    const [messages,setMessages]=useState([])
-    const [newMessage,setNewMessage]=useState("")
-    const inputRef = useRef();
-    const [name,setName]=useState("");
-    const [searchRes,setSearchRes]=useState([])
-useEffect(() => {
-  console.log("📡 Fetching chats...");
 
-  const fetchUsers = async () => {
-    try {
-      const res = await API.get('/chat');
-      console.log("✅ Chats received:", res.data);
-      
-      if (res.data && res.data.payload) {
-        setUsers(res.data.payload || []);
-      } else {
-        console.log("No chats found, setting empty array");
-        setUsers([]);
-      }
-    } catch (err) {
-      console.log("❌ Error fetching chats:", err.response?.status, err.message);
-      if (err.response?.status === 401) {
-        setTimeout(() => {
-          navigate('/login');
-        }, 500);
-      }
-    }
-  };
+function ChatPage() {
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const inputRef = useRef();
+  const [name, setName] = useState("");
+  const [searchRes, setSearchRes] = useState([]);
   
-  fetchUsers();  // Call the fetch function
-  
-}, [navigate]);  // First useEffect ends here
+  const navigate = useNavigate(); // ✅ Moved inside component
 
-// SECOND useEffect - Message polling (separate, not nested)
-useEffect(() => {
-  if (!selectedUser) return;
+  useEffect(() => {
+    console.log("📡 Fetching chats...");
 
-  const fetchMessages = async () => {
-    try {
-      const msgRes = await API.get(`/message/${selectedUser._id}`);
-      setMessages(msgRes.data?.payload || []);
-      console.log(msgRes.data?.payload)
-    } catch (err) {
-      console.log("Polling error:", err.message);
-    }
-  };
+    const fetchUsers = async () => {
+      try {
+        const res = await API.get('/chat');
+        console.log("✅ Chats received:", res.data);
+        
+        if (res.data && res.data.payload) {
+          setUsers(res.data.payload || []);
+        } else {
+          console.log("No chats found, setting empty array");
+          setUsers([]);
+        }
+      } catch (err) {
+        console.log("❌ Error fetching chats:", err.response?.status, err.message);
+        if (err.response?.status === 401) {
+          setTimeout(() => {
+            navigate('/login');
+          }, 500);
+        }
+      }
+    };
+    
+    fetchUsers();
+  }, [navigate]);
 
-  fetchMessages(); // first time
+  // SECOND useEffect - Message polling
+  useEffect(() => {
+    if (!selectedUser) return;
 
-  const interval = setInterval(() => {
+    const fetchMessages = async () => {
+      try {
+        const msgRes = await API.get(`/message/${selectedUser._id}`);
+        setMessages(msgRes.data?.payload || []);
+        console.log(msgRes.data?.payload);
+      } catch (err) {
+        console.log("Polling error:", err.message);
+      }
+    };
+
     fetchMessages();
-  }, 3000);
 
-  return () => clearInterval(interval);
+    const interval = setInterval(fetchMessages, 3000);
+    return () => clearInterval(interval);
+  }, [selectedUser]);
 
-}, [selectedUser]);
+  const handleSelectedUser = (user) => {
+    setSelectedUser(user);
+    setSearchRes("");
+  };
+
+  const handleSearch = async (name) => {
+    if (!name) return;
+    try {
+      const res = await API.get('/user/search', {
+        params: { userName: name }
+      });
+      console.log(res.data?.payload);
+      setName("");
+      setSearchRes(res.data?.payload || []);
+    } catch (err) {
+      console.error("Error:", err.message);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage || !selectedUser) return;
+    try {
+      const res = await API.post('/message', {
+        oId: selectedUser._id,
+        text: newMessage
+      });
+      console.log(res.data);
+      setMessages([...messages, res.data.payload]);
+      setNewMessage("");
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
 
    return (
     <div style={{display:"flex",height:"100vh"}}>
