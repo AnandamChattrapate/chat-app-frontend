@@ -11,24 +11,65 @@ function ChatPage(){
     const [name,setName]=useState("");
     const [searchRes,setSearchRes]=useState([])
 
+    const navigate = useNavigate(); // Don't forget to import useNavigate
 
-    // fetch all users
-    useEffect(()=>{
-        console.log("Use Effect");
+  // Check token before anything else
+  useEffect(() => {
+    const checkAuth = () => {
+      const hasToken = localStorage.getItem('token') || 
+                      document.cookie.includes('token=');
+      
+      if (!hasToken) {
+        console.log('❌ No token found, redirecting to login');
+        navigate('/login');
+        return false;
+      }
+      
+      console.log('✅ Token found, proceeding to chat');
+      return true;
+    };
 
-        const fetchUsers= async ()=>{
-            try{
-                const res=await API.get('/chat');
-                console.log("all chats we recieved : ",res.data.payload)
-                setUsers(res.data.payload);
-            }catch(err){
-                console.log("error in fetching data "+err.message)
+    checkAuth();
+  }, [navigate]);
 
-            }
+
+
+    // // fetch all users
+    // useEffect(()=>{
+    //     console.log("Use Effect");
+
+    //     const fetchUsers= async ()=>{
+    //         try{
+    //             const res=await API.get('/chat');
+    //             console.log("all chats we recieved : ",res.data.payload)
+    //             setUsers(res.data.payload);
+    //         }catch(err){
+    //             console.log("error in fetching data "+err.message)
+
+    //         }
+    //     }
+    //         fetchUsers();
+
+    // },[]);
+    // fetch all users - with better error handling
+  useEffect(() => {
+    console.log("📡 Fetching chats...");
+
+    const fetchUsers = async () => {
+      try {
+        const res = await API.get('/chat');
+        console.log("✅ Chats received:", res.data.payload);
+        setUsers(res.data.payload || []);
+      } catch (err) {
+        console.log("❌ Error fetching chats:", err.response?.status, err.message);
+        if (err.response?.status === 401) {
+          navigate('/login');
         }
-            fetchUsers();
-
-    },[]);
+      }
+    };
+    
+    fetchUsers();
+  }, [navigate]);
     useEffect(() => {
   if (!selectedUser) return;
 
