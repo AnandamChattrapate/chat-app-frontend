@@ -13,32 +13,45 @@ function Login() {
   const navigate = useNavigate();
   console.log("🔥 navigate function:", navigate);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    console.log("🔥 handleLogin called");
-    console.log("🔥 navigate inside handler:", navigate); 
+const handleLogin = async (e) => {
+  e.preventDefault();
+  console.log("🔵 LOGIN ATTEMPT STARTED");
+  console.log("📧 Email:", email);
+  console.log("🔑 Password length:", password.length);
+  
+  setError("");
+  setLoading(true);
+
+  try {
+    console.log("📤 Sending request to:", API.defaults.baseURL + "auth/login");
     
-    setError("");
-    setLoading(true);
+    const res = await API.post("auth/login", {
+      email,
+      password,
+    });
 
-    try {
-      const res = await API.post("auth/login", {
-        email,
-        password,
-      });
-
-      console.log("✅ Login success");
-      console.log("🔥 About to navigate...");
-      navigate("/chat"); // THIS IS LINE 65 in your original code
-      console.log("🔥 After navigate");
-      
-    } catch (err) {
-      console.log("❌ Login Failed:", err);
-      setError("Invalid email or password");
-    } finally {
-      setLoading(false);
+    console.log("✅ LOGIN SUCCESS - Full response:", res);
+    console.log("✅ Response data:", res.data);
+    console.log("🍪 Cookies after login:", document.cookie);
+    
+    if (res.data.token) {
+      console.log("🔑 Token received (first 20 chars):", res.data.token.substring(0, 20) + "...");
     }
-  };
+    
+    navigate("/chat");
+    
+  } catch (err) {
+    console.log("❌ LOGIN FAILED - Full error:", err);
+    console.log("❌ Error response:", err.response);
+    console.log("❌ Error status:", err.response?.status);
+    console.log("❌ Error data:", err.response?.data);
+    
+    setError(err.response?.data?.message || "Invalid email or password");
+  } finally {
+    setLoading(false);
+    console.log("🔵 LOGIN ATTEMPT FINISHED");
+  }
+};
 
   return (
     <div>
